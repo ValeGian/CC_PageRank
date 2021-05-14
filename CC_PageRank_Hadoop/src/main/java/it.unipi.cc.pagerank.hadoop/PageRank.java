@@ -62,7 +62,7 @@ public class PageRank {
             for(String token: tokens) {
                 sum += 1;
             }
-            reducerKey.set(tokens[0]);
+            //reducerKey.set(tokens[0]);
             //reducerKey.set("prova"); //to count how many lines (pages) there are
             context.write(reducerKey, new IntWritable(sum));
         }
