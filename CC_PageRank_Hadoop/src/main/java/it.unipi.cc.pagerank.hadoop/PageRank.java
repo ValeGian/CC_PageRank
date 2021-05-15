@@ -1,10 +1,14 @@
 package it.unipi.cc.pagerank.hadoop;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 
+import it.unipi.cc.pagerank.hadoop.serialize.GraphNode;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -47,36 +51,29 @@ public class PageRank {
         }
     }
 */
-    public static class NewMapper extends Mapper<LongWritable, Text, Text, IntWritable>
+    public static class NewMapper extends Mapper<LongWritable, Text, Text, GraphNode>
     {
-        private final static IntWritable one = new IntWritable(1);
         private final Text reducerKey = new Text();
+        private final GraphNode reducerGraphValue = new GraphNode();
 
         public void map(final LongWritable key, final Text value, final Context context) throws IOException, InterruptedException {
-            int sum = 0;
-            String record = value.toString();
-            if (record == null || record.length() == 0)
-                return;
-
-            String[] tokens = record.trim().split("</title>");
-            for(String token: tokens) {
-                sum += 1;
+            DoubleWritable rank = new DoubleWritable(2.0);
+            List<Text> adjList = new ArrayList<Text>();
+            for(int i = 0; i < 3; i++) {
+                adjList.add(new Text("prova"));
             }
-            //reducerKey.set(tokens[0]);
-            //reducerKey.set("prova"); //to count how many lines (pages) there are
-            context.write(reducerKey, new IntWritable(sum));
+
+            reducerKey.set("Here");
+            reducerGraphValue.set(rank, adjList);
+            context.write(reducerKey, reducerGraphValue);
         }
     }
 
-    public static class NewReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
-        private final IntWritable result = new IntWritable();
+    public static class NewReducer extends Reducer<Text, GraphNode, Text, GraphNode> {
+        private final GraphNode result = new GraphNode();
 
-        public void reduce(final Text key, final Iterable<IntWritable> values, final Context context) throws IOException, InterruptedException {
-            int sum = 0;
-            for (final IntWritable val : values) {
-                sum += val.get();
-            }
-            result.set(sum);
+        public void reduce(final Text key, final Iterable<GraphNode> values, final Context context) throws IOException, InterruptedException {
+            GraphNode result = values.iterator().next();
             context.write(key, result);
         }
     }
@@ -92,6 +89,10 @@ public class PageRank {
 
         job.setMapperClass(NewMapper.class);
         job.setReducerClass(NewReducer.class);
+
+        job.setMapOutputValueClass(GraphNode.class);
+
+        job.setOutputValueClass(GraphNode.class);
 
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
