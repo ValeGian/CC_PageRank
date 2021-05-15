@@ -1,5 +1,6 @@
 package it.unipi.cc.pagerank.hadoop.serialize;
 
+import com.google.gson.Gson;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
@@ -17,6 +18,8 @@ public class GraphNode implements Writable {
     //-------------------------------------------------------------------------------
 
     public GraphNode() {
+        pageRank = new DoubleWritable(0.0);
+        adjacencyList = new ArrayList<Text>();
     }
 
     public GraphNode(final DoubleWritable pageRank, final List<Text> adjacencyList) {
@@ -26,17 +29,28 @@ public class GraphNode implements Writable {
 
     //-------------------------------------------------------------------------------
 
-    public void setPageRank(DoubleWritable pageRank) {
+    public void setPageRank(final DoubleWritable pageRank) {
         this.pageRank = pageRank;
     }
 
-    public void setAdjacencyList(List<Text> adjacencyList) {
+    public void setPageRank(final double pageRank) { this.pageRank = new DoubleWritable(pageRank); }
+
+    public void setAdjacencyList(final List<Text> adjacencyList) {
         this.adjacencyList = adjacencyList;
     }
 
-    public void set(DoubleWritable pageRank, List<Text> adjacencyList) {
+    public void set(final DoubleWritable pageRank, final List<Text> adjacencyList) {
         setPageRank(pageRank);
         setAdjacencyList(adjacencyList);
+    }
+
+    public void setFromJson(final String json) {
+        GraphNode fromJson = new Gson().fromJson(json, GraphNode.class);
+        set(fromJson.getPageRank(), fromJson.getAdjacencyList());
+    }
+
+    public void addAdjNode(final Text newAdjNode) {
+        this.adjacencyList.add(new Text(newAdjNode));  // Deep copy
     }
 
     public DoubleWritable getPageRank() { return this.pageRank; }
@@ -71,6 +85,11 @@ public class GraphNode implements Writable {
     //-------------------------------------------------------------------------------
 
     public String toString() {
-        return "[Rank: " + this.pageRank + "]\t[Adj List: " + this.adjacencyList + "]";
+        String json = new Gson().toJson(this);
+        return json;
+    }
+
+    public String toPrintableString() {
+        return "[Rank: " + pageRank + "]\t[AdjList: " + adjacencyList + "]";
     }
 }

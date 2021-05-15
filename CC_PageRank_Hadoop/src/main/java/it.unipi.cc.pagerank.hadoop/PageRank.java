@@ -79,7 +79,6 @@ public class PageRank {
     }
 
     public static void main(final String[] args) throws Exception {
-        //System.setProperty("hadoop.home.dir", "C:/hadoop");
         final Configuration conf = new Configuration();
         final Job job = new Job(conf, "PageRank");
         job.setJarByClass(PageRank.class);
