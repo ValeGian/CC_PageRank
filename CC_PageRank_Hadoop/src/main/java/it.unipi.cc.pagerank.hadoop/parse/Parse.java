@@ -1,5 +1,7 @@
-package it.unipi.cc.pagerank.hadoop;
+package it.unipi.cc.pagerank.hadoop.parse;
 
+import it.unipi.cc.pagerank.hadoop.Count;
+import it.unipi.cc.pagerank.hadoop.PageRank;
 import it.unipi.cc.pagerank.hadoop.serialize.GraphNode;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -13,38 +15,44 @@ import org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.apache.hadoop.util.GenericOptionsParser;
 
 import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.List;
 
 public class Parse {
     public static class ParseMapper extends Mapper<LongWritable, Text, Text, Text> {
         private final Text reducerKey = new Text();
         private final Text reducerValue = new Text();
+        private final Parser wiki_microParser = new ParserWikiMicro();
 
         public void map(final LongWritable key, final Text value, final Context context) throws IOException, InterruptedException {
-            /*System.out.println("Map START - " + value.toString());
-            Pattern p = Pattern.compile("\[[.*]]");
-            Matcher m = p.matcher(value.toString());
-            while (m.find())
-            {
-                String codeGroup = m.group();
-                System.out.format("'%s'\n", codeGroup);
+            String record = value.toString();
+            wiki_microParser.setStringToParse(record);
+            String title = wiki_microParser.getTitle();
+            List<String> outLinks = wiki_microParser.getOutLinks();
+
+            if(title != null && outLinks.size() > 0) {
+                reducerKey.set(title);
+                for(String outLink: outLinks) {
+                    reducerValue.set(outLink);
+                    context.write(reducerKey, reducerValue);
+                }
             }
-            System.out.println("Map END\n\n");
-             */
-            reducerKey.set("Test Page Title");
-            reducerValue.set("Page " + key.toString());
-            System.out.println(">> Map writes [Page] \"" + reducerKey + "\t[Linked Page] \"" + reducerValue + "\"");
-            context.write(reducerKey, reducerValue);
         }
     }
 
     public static class ParseReducer extends Reducer<Text, Text, Text, GraphNode> {
+        private int pageCount;
+
+        public void setup(Context context) throws IOException, InterruptedException
+        {
+            this.pageCount = context.getConfiguration().getInt("page.count", 0);
+        }
+
         public void reduce(final Text key, final Iterable<Text> values, final Context context) throws IOException, InterruptedException {
             GraphNode reducerOutValue = new GraphNode();
-            reducerOutValue.setPageRank(2.0);
+            reducerOutValue.setPageRank(1.0d/this.pageCount);
             for (Text value: values) {
              reducerOutValue.addAdjNode(value);
             }
@@ -54,6 +62,7 @@ public class Parse {
 
     public static class TestRankMapper extends Mapper<Text, Text, Text, Text> {
         public void map(final Text key, final Text value, final Context context) throws IOException, InterruptedException {
+            System.out.println("Map - " + value.toString());
             GraphNode node = new GraphNode();
             node.setFromJson(value.toString());
 
@@ -63,15 +72,28 @@ public class Parse {
     }
 
     public static void main(final String[] args) throws Exception {
+        // set configuration
         final Configuration conf = new Configuration();
-        conf.set("mapreduce.output.textoutputformat.separator", "]"); // changes output separator from \t to ]
-        //conf.set("mapreduce.input.keyvaluelinerecordreader.key.value.separator", "]"); // changes input separator from \t to ]
+        String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
+        /*if (otherArgs.length != 3) {
+            System.err.println("Usage: MovingAverage <count_input> <input> <output>");
+            System.exit(1);
+        }
+        System.out.println("args[0]: <count_input>="+otherArgs[0]);
+        System.out.println("args[1]: <input>="+otherArgs[1]);
+        System.out.println("args[2]: <output>="+otherArgs[2]);
+         */
+
+        conf.set("mapreduce.output.textoutputformat.separator", "\t"); // changes output separator from \t to </title>
+        //conf.set("mapreduce.input.keyvaluelinerecordreader.key.value.separator", "\t"); // changes input separator from \t to </title>
+
+        // instantiate job
         final Job job = new Job(conf, "Parse");
         job.setJarByClass(PageRank.class);
 
         // set mapper/reducer
-        job.setMapperClass(ParseMapper.class);
         //job.setMapperClass(TestRankMapper.class);
+        job.setMapperClass(ParseMapper.class);
         job.setReducerClass(ParseReducer.class);
 
         // define mapper's output key-value
@@ -82,11 +104,17 @@ public class Parse {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(GraphNode.class);
 
+        // set page count for initializing the ranks
+        Count countStage = new Count();
+        int pageCount = countStage.getPageCount();
+        job.getConfiguration().setInt("page.count", pageCount);
+
         // define I/O
         //KeyValueTextInputFormat.addInputPath(job, new Path(args[0])); // for TestRankMapper
-        FileInputFormat.addInputPath(job, new Path(args[0]));
-        FileOutputFormat.setOutputPath(job, new Path(args[1]));
+        FileInputFormat.addInputPath(job, new Path(otherArgs[0]));
+        FileOutputFormat.setOutputPath(job, new Path(otherArgs[1]));
 
+        // define input/output format
         //job.setInputFormatClass(KeyValueTextInputFormat.class); // for TestRankMapper
         job.setInputFormatClass(TextInputFormat.class);
         job.setOutputFormatClass(TextOutputFormat.class);
