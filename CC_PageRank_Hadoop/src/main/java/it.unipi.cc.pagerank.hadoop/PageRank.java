@@ -3,9 +3,8 @@ package it.unipi.cc.pagerank.hadoop;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringTokenizer;
 
-import it.unipi.cc.pagerank.hadoop.serialize.GraphNode;
+import it.unipi.cc.pagerank.hadoop.serialize.Node;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;
@@ -18,7 +17,6 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 public class PageRank {
     /*
@@ -51,29 +49,29 @@ public class PageRank {
         }
     }
 */
-    public static class NewMapper extends Mapper<LongWritable, Text, Text, GraphNode>
+    public static class NewMapper extends Mapper<LongWritable, Text, Text, Node>
     {
         private final Text reducerKey = new Text();
-        private final GraphNode reducerGraphValue = new GraphNode();
+        private final Node reducerGraphValue = new Node();
 
         public void map(final LongWritable key, final Text value, final Context context) throws IOException, InterruptedException {
             DoubleWritable rank = new DoubleWritable(2.0);
-            List<Text> adjList = new ArrayList<Text>();
+            List<String> adjList = new ArrayList<String>();
             for(int i = 0; i < 3; i++) {
-                adjList.add(new Text("prova"));
+                adjList.add("prova");
             }
 
             reducerKey.set("Here");
-            reducerGraphValue.set(rank, adjList);
+            reducerGraphValue.set(rank.get(), adjList);
             context.write(reducerKey, reducerGraphValue);
         }
     }
 
-    public static class NewReducer extends Reducer<Text, GraphNode, Text, GraphNode> {
-        private final GraphNode result = new GraphNode();
+    public static class NewReducer extends Reducer<Text, Node, Text, Node> {
+        private final Node result = new Node();
 
-        public void reduce(final Text key, final Iterable<GraphNode> values, final Context context) throws IOException, InterruptedException {
-            GraphNode result = values.iterator().next();
+        public void reduce(final Text key, final Iterable<Node> values, final Context context) throws IOException, InterruptedException {
+            Node result = values.iterator().next();
             context.write(key, result);
         }
     }
@@ -89,9 +87,9 @@ public class PageRank {
         job.setMapperClass(NewMapper.class);
         job.setReducerClass(NewReducer.class);
 
-        job.setMapOutputValueClass(GraphNode.class);
+        job.setMapOutputValueClass(Node.class);
 
-        job.setOutputValueClass(GraphNode.class);
+        job.setOutputValueClass(Node.class);
 
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));

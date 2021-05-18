@@ -1,8 +1,7 @@
 package it.unipi.cc.pagerank.hadoop.parse;
 
-import it.unipi.cc.pagerank.hadoop.Count;
-import it.unipi.cc.pagerank.hadoop.PageRank;
-import it.unipi.cc.pagerank.hadoop.serialize.GraphNode;
+import it.unipi.cc.pagerank.hadoop.count.Count;
+import it.unipi.cc.pagerank.hadoop.serialize.Node;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
@@ -11,7 +10,6 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
@@ -42,19 +40,18 @@ public class Parse {
         }
     }
 
-    public static class ParseReducer extends Reducer<Text, Text, Text, GraphNode> {
+    public static class ParseReducer extends Reducer<Text, Text, Text, Node> {
         private int pageCount;
 
-        public void setup(Context context) throws IOException, InterruptedException
-        {
+        public void setup(Context context) throws IOException, InterruptedException {
             this.pageCount = context.getConfiguration().getInt("page.count", 0);
         }
 
         public void reduce(final Text key, final Iterable<Text> values, final Context context) throws IOException, InterruptedException {
-            GraphNode reducerOutValue = new GraphNode();
+            Node reducerOutValue = new Node();
             reducerOutValue.setPageRank(1.0d/this.pageCount);
             for (Text value: values) {
-             reducerOutValue.addAdjNode(value);
+                reducerOutValue.addAdjNode(value.toString());
             }
             context.write(key, reducerOutValue);
         }
@@ -63,11 +60,11 @@ public class Parse {
     public static class TestRankMapper extends Mapper<Text, Text, Text, Text> {
         public void map(final Text key, final Text value, final Context context) throws IOException, InterruptedException {
             System.out.println("Map - " + value.toString());
-            GraphNode node = new GraphNode();
+            Node node = new Node();
             node.setFromJson(value.toString());
 
             System.out.println(key);
-            System.out.println(node.toPrintableString());
+            System.out.println(node.toHumanString());
         }
     }
 
@@ -89,7 +86,7 @@ public class Parse {
 
         // instantiate job
         final Job job = new Job(conf, "Parse");
-        job.setJarByClass(PageRank.class);
+        job.setJarByClass(Parse.class);
 
         // set mapper/reducer
         //job.setMapperClass(TestRankMapper.class);
@@ -102,9 +99,9 @@ public class Parse {
 
         // define reducer's output key-value
         job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(GraphNode.class);
+        job.setOutputValueClass(Node.class);
 
-        // set page count for initializing the ranks
+        // set page.count for initializing the ranks
         Count countStage = new Count();
         int pageCount = countStage.getPageCount();
         job.getConfiguration().setInt("page.count", pageCount);
@@ -119,6 +116,7 @@ public class Parse {
         job.setInputFormatClass(TextInputFormat.class);
         job.setOutputFormatClass(TextOutputFormat.class);
 
+        System.out.println("Main");
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 }

@@ -1,6 +1,5 @@
-package it.unipi.cc.pagerank.hadoop;
+package it.unipi.cc.pagerank.hadoop.count;
 
-import it.unipi.cc.pagerank.hadoop.serialize.GraphNode;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
@@ -12,6 +11,7 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import java.io.BufferedReader;
@@ -87,12 +87,8 @@ public class Count {
         // define input/output format
         job.setInputFormatClass(TextInputFormat.class);
         job.setOutputFormatClass(TextOutputFormat.class);
+        //job.setOutputFormatClass(SequenceFileOutputFormat.class);
 
-        if(job.waitForCompletion(true)) {
-            System.out.println(new Count().getPageCount());
-        } else {
-            System.out.println(job.getJobName() + "Job did not succeed");
-        }
-
+        System.out.println(job.waitForCompletion(true));
     }
 }
