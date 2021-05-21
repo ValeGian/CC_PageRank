@@ -1,0 +1,7 @@
+q0	pageRank:0.16666666666666669	adj:[q2]
+q1	pageRank:0.1	adj:[q0,q2]
+q2	pageRank:0.4666666666666667	adj:[q0,q2,q3]
+q3	pageRank:0.16666666666666669	adj:[q3,q4]
+q4	pageRank:0.1	adj:[q6]
+q5	pageRank:0.1	adj:[q5,q6]
+q6	pageRank:0.30000000000000004	adj:[q2,q1]

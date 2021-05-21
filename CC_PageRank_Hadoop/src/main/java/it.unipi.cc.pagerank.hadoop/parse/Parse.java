@@ -41,10 +41,10 @@ public class Parse {
     }
 
     public static class ParseReducer extends Reducer<Text, Text, Text, Node> {
-        private int pageCount;
+        private int pageCount = 10;
 
         public void setup(Context context) throws IOException, InterruptedException {
-            this.pageCount = context.getConfiguration().getInt("page.count", 0);
+//            this.pageCount = context.getConfiguration().getInt("page.count", 0);
         }
 
         public void reduce(final Text key, final Iterable<Text> values, final Context context) throws IOException, InterruptedException {
@@ -102,9 +102,9 @@ public class Parse {
         job.setOutputValueClass(Node.class);
 
         // set page.count for initializing the ranks
-        Count countStage = new Count();
-        int pageCount = countStage.getPageCount();
-        job.getConfiguration().setInt("page.count", pageCount);
+//        Count countStage = new Count();
+//        int pageCount = countStage.getPageCount();
+//        job.getConfiguration().setInt("page.count", pageCount);
 
         // define I/O
         //KeyValueTextInputFormat.addInputPath(job, new Path(args[0])); // for TestRankMapper

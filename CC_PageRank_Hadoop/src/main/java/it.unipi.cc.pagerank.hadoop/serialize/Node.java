@@ -7,6 +7,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Node implements WritableComparable<Node> {
@@ -56,19 +57,25 @@ public class Node implements WritableComparable<Node> {
     public boolean isNode() { return ((this.adjacencyList != null) && (this.adjacencyList.size() > 0)); }
 
     //-------------------------------------------------------------------------------
+    public void readFromText(String texts){
+//        String s = "q6	{"pageRank":0.2,"adjacencyList":["q3","q4","q6"]}";
 
+    }
     @Override
     public void write(DataOutput out) throws IOException {
+        System.out.println("at the begining of the write");
         out.writeDouble(pageRank);
 
         out.writeInt(this.adjacencyList.size());
         for (String adjNode: this.adjacencyList) {
             out.writeUTF(adjNode);
         }
+        System.out.println("at the end of the write");
     }
 
     @Override
     public void readFields(DataInput in) throws IOException {
+        System.out.println("i am in the beginning readfields");
         this.pageRank = in.readDouble();
 
         int size = in.readInt();
@@ -76,6 +83,7 @@ public class Node implements WritableComparable<Node> {
         for (int i = 0; i < size; i++) {
             this.adjacencyList.add(in.readUTF());
         }
+        System.out.println("at the end of the readfields");
     }
 
     //-------------------------------------------------------------------------------
@@ -86,8 +94,49 @@ public class Node implements WritableComparable<Node> {
 
     @Override
     public String toString() {
-        String json = new Gson().toJson(this);
-        return json;
+        System.out.println("test of toString of node");
+        StringBuilder s = new StringBuilder("pageRank:" + Double.toString(this.pageRank) + '\t' + "adj:[");
+        for (int i=0;i<this.adjacencyList.size();i++){
+            s.append(this.adjacencyList.get(i));
+            if (i!=(this.adjacencyList.size()-1)){
+                s.append(",");
+            }
+        }
+        s.append(']');
+//        String json = new Gson().toJson(this);
+//        return json;
+        return s.toString();
+
+    }
+
+    public void fromString(String s) {
+
+
+        String[] parts = s.split("\\t");
+
+
+        //q6	pageRank:0.2	adj:[q3,q4,q6]
+        if (parts.length > 2) {
+            this.pageRank = Double.parseDouble(parts[1].split(":")[1]);
+
+            String s1 = parts[2].split(":")[1];
+
+            s1 = s1.replace("[", "");
+            s1 = s1.replace("]", "");
+
+            this.adjacencyList = new ArrayList<String>(Arrays.asList(s1.split(",")));
+        }
+        else{
+            this.pageRank = Double.parseDouble(parts[0].split(":")[1]);
+
+            String s1 = parts[1].split(":")[1];
+
+            s1 = s1.replace("[", "");
+            s1 = s1.replace("]", "");
+
+            this.adjacencyList = new ArrayList<String>(Arrays.asList(s1.split(",")));
+        }
+
     }
 
     @Override
