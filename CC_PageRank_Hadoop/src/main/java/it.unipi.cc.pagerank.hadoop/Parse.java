@@ -14,9 +14,9 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
-import org.apache.hadoop.util.GenericOptionsParser;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Parse {
@@ -38,9 +38,9 @@ public class Parse {
     public String getOutputPath() { return output; }
 
     public static class ParseMapper extends Mapper<LongWritable, Text, Text, Text> {
-        private final Text reducerKey = new Text();
-        private final Text reducerValue = new Text();
-        private final Parser wiki_microParser = new ParserWikiMicro();
+        private static final Text reducerKey = new Text();
+        private static final Text reducerValue = new Text();
+        private static final Parser wiki_microParser = new ParserWikiMicro();
 
         // For each line of the input (web page), emit title and out-links
         @Override
@@ -62,7 +62,7 @@ public class Parse {
 
     public static class ParseReducer extends Reducer<Text, Text, Text, Node> {
         private int pageCount;
-        private final Node outValue = new Node();
+        private static final Node outValue = new Node();
 
         @Override
         public void setup(Context context) throws IOException, InterruptedException {
@@ -72,10 +72,12 @@ public class Parse {
         // For each page, emit the title and its node features
         @Override
         public void reduce(final Text key, final Iterable<Text> values, final Context context) throws IOException, InterruptedException {
-            outValue.setPageRank(1.0d/this.pageCount);
+            List<String> adjacencyList = new ArrayList<>();
             for (Text value: values) {
-                outValue.addAdjNode(value.toString());
+                adjacencyList.add(value.toString());
             }
+            outValue.setAdjacencyList(adjacencyList);
+            outValue.setPageRank(1.0d/this.pageCount);
             context.write(key, outValue);
         }
     }
@@ -117,6 +119,7 @@ public class Parse {
         return job.waitForCompletion(true);
     }
 
+    /*
     public static void main(final String[] args) throws Exception {
         // set configurations
         final Configuration conf = new Configuration();
@@ -153,4 +156,5 @@ public class Parse {
 
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
+     */
 }

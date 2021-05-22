@@ -34,8 +34,8 @@ public class Sort {
     public String getOutputPath() { return output; }
 
     public static class SortMapper extends Mapper<Text, Text, Page, NullWritable> {
-        private final Node node = new Node();
-        private final Page reducerKey = new Page();
+        private static final Node node = new Node();
+        private static final Page reducerKey = new Page();
         private static final NullWritable nullValue = NullWritable.get();
 
         // For each node, create a Page object and emit it
@@ -48,8 +48,8 @@ public class Sort {
     }
 
     public static class SortReducer extends Reducer<Page, NullWritable, Text, DoubleWritable> {
-        private final Text title = new Text();
-        private final DoubleWritable rank = new DoubleWritable();
+        private static final Text title = new Text();
+        private static final DoubleWritable rank = new DoubleWritable();
 
         // Emit the already sorted list of pages (exploits of Shuffle & Sort phase)
         @Override
@@ -94,6 +94,7 @@ public class Sort {
         return job.waitForCompletion(true);
     }
 
+    /*
     public static void main(final String[] args) throws Exception {
         // set configuration
         final Configuration conf = new Configuration();
@@ -125,4 +126,5 @@ public class Sort {
 
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
+     */
 }

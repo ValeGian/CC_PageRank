@@ -49,10 +49,6 @@ public class Node implements WritableComparable<Node> {
         set(fromJson.getPageRank(), fromJson.getAdjacencyList());
     }
 
-    public void addAdjNode(final String newAdjNode) {
-        this.adjacencyList.add(newAdjNode);
-    }
-
     public double getPageRank() { return this.pageRank; }
 
     public List<String> getAdjacencyList() { return this.adjacencyList; }

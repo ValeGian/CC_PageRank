@@ -36,9 +36,9 @@ public class Rank {
     public String getOutputPath() { return output; }
 
     public static class RankMapper extends Mapper<Text, Text, Text, Node> {
-        private final Text reducerKey = new Text();
-        private final Node reducerValue = new Node();
-        private static final List<String> empty = new ArrayList<String>();
+        private static final Text reducerKey = new Text();
+        private static final Node reducerValue = new Node();
+        private static final List<String> empty = new ArrayList<>();
 
         // For each line of the input (page title and its node features)
         // (1) emit page title and its node features to maintain the graph structure
@@ -52,9 +52,10 @@ public class Rank {
             List<String> outLinks = reducerValue.getAdjacencyList();
             final double mass = reducerValue.getPageRank() / outLinks.size();
 
+            reducerValue.setAdjacencyList(empty);
             for(String outLink: outLinks) {
                 reducerKey.set(outLink);
-                reducerValue.set(mass, empty);
+                reducerValue.setPageRank(mass);
                 context.write(reducerKey, reducerValue); // (2)
             }
         }
@@ -63,7 +64,8 @@ public class Rank {
     public static class RankReducer extends Reducer<Text, Node, Text, Node>{
         private double alpha;
         private double randomJumpFactor;
-        private final Node outValue = new Node();
+        private static final Node outValue = new Node();
+        private static final List<String> empty = new ArrayList<>();
 
         @Override
         public void setup(Context context) throws IOException, InterruptedException {
@@ -77,9 +79,9 @@ public class Rank {
         // (2) else, get from it an incoming rank contribution
         @Override
         public void reduce(Text key, Iterable<Node> values, Context context) throws IOException, InterruptedException {
-            double rank = 0;
-
-            for (Node p: values) {
+            double rank = 0.0;
+            outValue.setAdjacencyList(empty);
+            for(Node p: values) {
                 if(p.isCompleteNode())
                     outValue.set(p);  // (1)
                 else
@@ -129,7 +131,7 @@ public class Rank {
 
         return job.waitForCompletion(true);
     }
-
+/*
     public static void main(final String[] args) throws Exception {
         // set configurations
         final Configuration conf = new Configuration();
@@ -161,4 +163,5 @@ public class Rank {
 
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
+ */
 }

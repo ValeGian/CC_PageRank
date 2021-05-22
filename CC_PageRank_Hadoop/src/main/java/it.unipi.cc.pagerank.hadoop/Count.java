@@ -1,6 +1,9 @@
 package it.unipi.cc.pagerank.hadoop;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
@@ -14,8 +17,9 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.assertEquals;
 
@@ -48,7 +52,7 @@ public class Count {
     }
 
     public static class CountReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
-        private final IntWritable result = new IntWritable();
+        private static final IntWritable result = new IntWritable();
 
         @Override
         public void reduce(final Text key, final Iterable<IntWritable> values, final Context context) throws IOException, InterruptedException {
@@ -68,10 +72,17 @@ public class Count {
 
         // read and return the result
         final String file = baseOutput + OUTPUT_PATH + "/part-r-00000";
+        Configuration configuration = new Configuration();
+        //configuration.set("fs.defaultFS", "hdfs://localhost:9000");
+        FileSystem fileSystem = FileSystem.get(configuration);
+        Path hdfsReadPath = new Path(file);
+        FSDataInputStream inputStream = fileSystem.open(hdfsReadPath);
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+        String line = bufferedReader.readLine();
 
-        BufferedReader reader = new BufferedReader(new FileReader(file));
-        String line = reader.readLine();
-        reader.close();
+        bufferedReader.close();
+        inputStream.close();
+        fileSystem.close();
 
         String[] tokens = line.trim().split(OUTPUT_SEPARATOR);
         assertEquals(OUTPUT_KEY, tokens[0]);
@@ -114,6 +125,7 @@ public class Count {
         return job.waitForCompletion(true);
     }
 
+    /*
     public static void main(final String[] args) throws Exception {
         // set configurations
         final Configuration conf = new Configuration();
@@ -147,4 +159,5 @@ public class Count {
 
         System.out.println(job.waitForCompletion(true));
     }
+     */
 }
