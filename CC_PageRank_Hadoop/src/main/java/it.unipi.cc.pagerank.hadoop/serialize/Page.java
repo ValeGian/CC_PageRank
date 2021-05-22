@@ -13,8 +13,7 @@ public class Page implements WritableComparable<Page> {
 
     //-------------------------------------------------------------------------------
 
-    public Page() {
-    }
+    public Page() { }
 
     public Page(final String title, final double rank) {
         set(title, rank);

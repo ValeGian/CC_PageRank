@@ -39,13 +39,18 @@ public class Node implements WritableComparable<Node> {
         setAdjacencyList(adjacencyList);
     }
 
+    public void set(final Node node) {
+        setPageRank(node.getPageRank());
+        setAdjacencyList(node.getAdjacencyList());
+    }
+
     public void setFromJson(final String json) {
         Node fromJson = new Gson().fromJson(json, Node.class);
         set(fromJson.getPageRank(), fromJson.getAdjacencyList());
     }
 
     public void addAdjNode(final String newAdjNode) {
-        this.adjacencyList.add(newAdjNode);  // Deep copy
+        this.adjacencyList.add(newAdjNode);
     }
 
     public double getPageRank() { return this.pageRank; }
@@ -54,28 +59,22 @@ public class Node implements WritableComparable<Node> {
 
     //-------------------------------------------------------------------------------
 
-    public boolean isNode() { return ((this.adjacencyList != null) && (this.adjacencyList.size() > 0)); }
+    public boolean isCompleteNode() { return ((this.adjacencyList != null) && (this.adjacencyList.size() > 0)); }
 
     //-------------------------------------------------------------------------------
-    public void readFromText(String texts){
-//        String s = "q6	{"pageRank":0.2,"adjacencyList":["q3","q4","q6"]}";
 
-    }
     @Override
     public void write(DataOutput out) throws IOException {
-        System.out.println("at the begining of the write");
         out.writeDouble(pageRank);
 
         out.writeInt(this.adjacencyList.size());
         for (String adjNode: this.adjacencyList) {
             out.writeUTF(adjNode);
         }
-        System.out.println("at the end of the write");
     }
 
     @Override
     public void readFields(DataInput in) throws IOException {
-        System.out.println("i am in the beginning readfields");
         this.pageRank = in.readDouble();
 
         int size = in.readInt();
@@ -83,7 +82,6 @@ public class Node implements WritableComparable<Node> {
         for (int i = 0; i < size; i++) {
             this.adjacencyList.add(in.readUTF());
         }
-        System.out.println("at the end of the readfields");
     }
 
     //-------------------------------------------------------------------------------
@@ -94,7 +92,7 @@ public class Node implements WritableComparable<Node> {
 
     @Override
     public String toString() {
-        System.out.println("test of toString of node");
+        /*
         StringBuilder s = new StringBuilder("pageRank:" + Double.toString(this.pageRank) + '\t' + "adj:[");
         for (int i=0;i<this.adjacencyList.size();i++){
             s.append(this.adjacencyList.get(i));
@@ -103,10 +101,10 @@ public class Node implements WritableComparable<Node> {
             }
         }
         s.append(']');
-//        String json = new Gson().toJson(this);
-//        return json;
         return s.toString();
-
+        */
+        String json = new Gson().toJson(this);
+        return json;
     }
 
     public void fromString(String s) {

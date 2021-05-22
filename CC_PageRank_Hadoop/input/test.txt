@@ -1,7 +1,10 @@
-q0	pageRank:0.16666666666666669	adj:[q2]
-q1	pageRank:0.1	adj:[q0,q2]
-q2	pageRank:0.4666666666666667	adj:[q0,q2,q3]
-q3	pageRank:0.16666666666666669	adj:[q3,q4]
-q4	pageRank:0.1	adj:[q6]
-q5	pageRank:0.1	adj:[q5,q6]
-q6	pageRank:0.30000000000000004	adj:[q2,q1]
+<title>Pagina 1</title><revision>[[Pagina 2]][[Pagina 4]]<[[Pagina 6]][[Pagina 8]]/revision>
+<title>Pagina 2</title><revision>[[Pagina 2]][[Pagina 3]][[Pagina 1]][[Pagina 1]]</revision>
+<title>Pagina 3</title><revision>[[Pagina 7]][[Pagina 4]]</revision>
+<title>Pagina 4</title><revision>[[Pagina 1]][[Pagina 9]]</revision>
+<title>Pagina 5</title><revision>[[Pagina 3]]</revision>
+<title>Pagina 6</title><revision>[[Pagina 7]][[Pagina 8]]</revision>
+<title>Pagina 7</title><revision>[[Pagina 6]][[Pagina 5]]</revision>
+<title>Pagina 8</title><revision>[[Pagina 20]][[Pagina 42]]</revision>
+<title>Pagina 9</title><revision>[[Pagina 12]][[Pagina 22]][[Pagina 20]]</revision>
+<title>Pagina 10</title><revision>[[Pagina 25]][[Pagina 2]][[Pagina 2]][[Pagina 2]][[Pagina 1]]</revision>
