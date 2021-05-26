@@ -1,5 +1,7 @@
 package it.unipi.cc.pagerank.hadoop;
 
+import it.unipi.cc.pagerank.hadoop.parser.Parser;
+import it.unipi.cc.pagerank.hadoop.parser.ParserWikiMicro;
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -20,6 +22,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Watchable;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -47,6 +51,15 @@ public class Count {
         // For each line in the input, emit 1
         @Override
         public void map(final LongWritable key, final Text value, final Context context) throws IOException, InterruptedException {
+            /* If we want to only count non-dangling nodes
+            Parser wiki_microParser = new ParserWikiMicro();
+            wiki_microParser.setStringToParse(value.toString());
+            List<String> outLinks = wiki_microParser.getOutLinks();
+            if(outLinks.size() > 0)
+                context.write(keyEmit, one);
+            else
+                System.out.println(wiki_microParser.getTitle());
+            */
             context.write(keyEmit, one);
         }
     }
