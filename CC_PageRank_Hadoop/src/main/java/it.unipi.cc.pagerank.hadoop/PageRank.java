@@ -9,7 +9,7 @@ public class PageRank {
         final Configuration conf = new Configuration();
         String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
         if (otherArgs.length != 4) {
-            System.err.println("Usage: PageRank <input> <output> <# of iterations> <random jump probability>");
+            System.err.println("Usage: PageRank <input> <base output> <# of iterations> <random jump probability>");
             System.exit(1);
         }
         final String INPUT = otherArgs[0];

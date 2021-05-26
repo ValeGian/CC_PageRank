@@ -46,7 +46,7 @@ public class ParserWikiMicro implements Parser {
                 outLinks.add(matcher.group(1).replace("\t", " ")); //remove /t to be able to use it as a separator
             }
         }
-         */
+        */
         return outLinks;
     }
 

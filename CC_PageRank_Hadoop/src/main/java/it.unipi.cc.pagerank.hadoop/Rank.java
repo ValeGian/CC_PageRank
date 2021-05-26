@@ -63,15 +63,14 @@ public class Rank {
 
     public static class RankReducer extends Reducer<Text, Node, Text, Node>{
         private double alpha;
-        private double randomJumpFactor;
+        private int pageCount;
         private static final Node outValue = new Node();
         private static final List<String> empty = new ArrayList<>();
 
         @Override
         public void setup(Context context) throws IOException, InterruptedException {
             this.alpha = context.getConfiguration().getDouble("alpha", 0);
-            final int pageCount = context.getConfiguration().getInt("page.count", 0);
-            this.randomJumpFactor = alpha / ((double)pageCount);
+            this.pageCount = context.getConfiguration().getInt("page.count", 0);
         }
 
         // For each node associated to a page
@@ -87,7 +86,7 @@ public class Rank {
                 else
                     rank += p.getPageRank(); // (2)
             }
-            double newPageRank = this.randomJumpFactor + ((1 - this.alpha) * rank);
+            double newPageRank = (this.alpha / ((double)this.pageCount)) + ((1 - this.alpha) * rank);
             outValue.setPageRank(newPageRank);
             context.write(key, outValue);
         }
@@ -102,7 +101,7 @@ public class Rank {
         conf.set("mapreduce.input.keyvaluelinerecordreader.key.value.separator", "\t"); // set \t as separator
 
         // instantiate job
-        final Job job = new Job(conf, "Rank");
+        final Job job = new Job(conf, "Rank-" + iteration);
         job.setJarByClass(Rank.class);
 
         // set mapper/reducer
