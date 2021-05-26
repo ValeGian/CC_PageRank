@@ -71,7 +71,7 @@ public class Rank {
         public void setup(Context context) throws IOException, InterruptedException {
             this.alpha = context.getConfiguration().getDouble("alpha", 0);
             final int pageCount = context.getConfiguration().getInt("page.count", 0);
-            randomJumpFactor = alpha / pageCount;
+            this.randomJumpFactor = alpha / ((double)pageCount);
         }
 
         // For each node associated to a page
@@ -87,7 +87,7 @@ public class Rank {
                 else
                     rank += p.getPageRank(); // (2)
             }
-            double newPageRank = randomJumpFactor + ((1 - alpha) * rank);
+            double newPageRank = this.randomJumpFactor + ((1 - this.alpha) * rank);
             outValue.setPageRank(newPageRank);
             context.write(key, outValue);
         }
