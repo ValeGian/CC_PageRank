@@ -13,15 +13,17 @@ import java.util.List;
 public class Node implements WritableComparable<Node> {
     private double pageRank;
     private List<String> adjacencyList;
+    private boolean isNode;
 
     //-------------------------------------------------------------------------------
 
     public Node() {
         setAdjacencyList(new ArrayList<String>());
+        setIsNode(false);
     }
 
-    public Node(final double pageRank, final List<String> adjacencyList) {
-        set(pageRank, adjacencyList);
+    public Node(final double pageRank, final List<String> adjacencyList, final boolean isNode) {
+        set(pageRank, adjacencyList, isNode);
     }
 
     //-------------------------------------------------------------------------------
@@ -34,28 +36,34 @@ public class Node implements WritableComparable<Node> {
         this.adjacencyList = adjacencyList;
     }
 
-    public void set(final double pageRank, final List<String> adjacencyList) {
+    public void setIsNode(final boolean isNode) { this.isNode = isNode; }
+
+    public void set(final double pageRank, final List<String> adjacencyList, final boolean isNode) {
         setPageRank(pageRank);
         setAdjacencyList(adjacencyList);
+        setIsNode(isNode);
     }
 
     public void set(final Node node) {
         setPageRank(node.getPageRank());
         setAdjacencyList(node.getAdjacencyList());
+        setIsNode(node.getIsNode());
     }
 
     public void setFromJson(final String json) {
         Node fromJson = new Gson().fromJson(json, Node.class);
-        set(fromJson.getPageRank(), fromJson.getAdjacencyList());
+        set(fromJson.getPageRank(), fromJson.getAdjacencyList(), fromJson.getIsNode());
     }
 
     public double getPageRank() { return this.pageRank; }
 
     public List<String> getAdjacencyList() { return this.adjacencyList; }
 
+    public boolean getIsNode() { return this.isNode; }
+
     //-------------------------------------------------------------------------------
 
-    public boolean isCompleteNode() { return ((this.adjacencyList != null) && (this.adjacencyList.size() > 0)); }
+    public boolean isNode() { return this.isNode; }
 
     //-------------------------------------------------------------------------------
 
@@ -67,6 +75,8 @@ public class Node implements WritableComparable<Node> {
         for (String adjNode: this.adjacencyList) {
             out.writeUTF(adjNode);
         }
+
+        out.writeBoolean(this.isNode);
     }
 
     @Override
@@ -78,6 +88,8 @@ public class Node implements WritableComparable<Node> {
         for (int i = 0; i < size; i++) {
             this.adjacencyList.add(in.readUTF());
         }
+
+        this.isNode = in.readBoolean();
     }
 
     //-------------------------------------------------------------------------------
@@ -88,17 +100,6 @@ public class Node implements WritableComparable<Node> {
 
     @Override
     public String toString() {
-        /*
-        StringBuilder s = new StringBuilder("pageRank:" + Double.toString(this.pageRank) + '\t' + "adj:[");
-        for (int i=0;i<this.adjacencyList.size();i++){
-            s.append(this.adjacencyList.get(i));
-            if (i!=(this.adjacencyList.size()-1)){
-                s.append(",");
-            }
-        }
-        s.append(']');
-        return s.toString();
-        */
         String json = new Gson().toJson(this);
         return json;
     }

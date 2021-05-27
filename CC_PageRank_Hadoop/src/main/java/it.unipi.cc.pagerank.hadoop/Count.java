@@ -48,18 +48,9 @@ public class Count {
         private static final IntWritable one = new IntWritable(1);
         private static final Text keyEmit = new Text(OUTPUT_KEY); // useful for debugging
 
-        // For each line in the input, emit 1
+        // For each line in the input (web page/node), emit 1
         @Override
         public void map(final LongWritable key, final Text value, final Context context) throws IOException, InterruptedException {
-            /* If we want to only count non-dangling nodes
-            Parser wiki_microParser = new ParserWikiMicro();
-            wiki_microParser.setStringToParse(value.toString());
-            List<String> outLinks = wiki_microParser.getOutLinks();
-            if(outLinks.size() > 0)
-                context.write(keyEmit, one);
-            else
-                System.out.println(wiki_microParser.getTitle());
-            */
             context.write(keyEmit, one);
         }
     }
@@ -113,6 +104,7 @@ public class Count {
         // instantiate job
         final Job job = new Job(conf, "Count");
         job.setJarByClass(Count.class);
+        //job.setNumReduceTasks(5);
 
         // set mapper/combiner/reducer
         job.setMapperClass(CountMapper.class);

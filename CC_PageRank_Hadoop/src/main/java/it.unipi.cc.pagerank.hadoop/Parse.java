@@ -40,9 +40,10 @@ public class Parse {
     public static class ParseMapper extends Mapper<LongWritable, Text, Text, Text> {
         private static final Text reducerKey = new Text();
         private static final Text reducerValue = new Text();
+        private static final Text empty = new Text("");
         private static final Parser wiki_microParser = new ParserWikiMicro();
 
-        // For each line of the input (web page), emit title and out-links
+        // For each line of the input (web page/node), emit title and out-links (if any)
         @Override
         public void map(final LongWritable key, final Text value, final Context context) throws IOException, InterruptedException {
             String record = value.toString();
@@ -50,12 +51,16 @@ public class Parse {
             String title = wiki_microParser.getTitle();
             List<String> outLinks = wiki_microParser.getOutLinks();
 
-            if(title != null && outLinks.size() > 0) {
+            if(title != null) {
                 reducerKey.set(title);
-                for(String outLink: outLinks) {
-                    reducerValue.set(outLink);
-                    context.write(reducerKey, reducerValue);
-                }
+
+                if(outLinks.size() > 0) {
+                    for (String outLink : outLinks) {
+                        reducerValue.set(outLink);
+                        context.write(reducerKey, reducerValue);
+                    }
+                } else
+                    context.write(reducerKey, empty);
             }
         }
     }
@@ -73,11 +78,15 @@ public class Parse {
         @Override
         public void reduce(final Text key, final Iterable<Text> values, final Context context) throws IOException, InterruptedException {
             List<String> adjacencyList = new ArrayList<>();
-            for (Text value: values) {
-                adjacencyList.add(value.toString());
+            String value;
+            for (Text outLink: values) {
+                value = outLink.toString();
+                if(!value.equals(""))
+                    adjacencyList.add(value);
             }
             outValue.setAdjacencyList(adjacencyList);
             outValue.setPageRank(1.0d/this.pageCount);
+            outValue.setIsNode(true);
             context.write(key, outValue);
         }
     }

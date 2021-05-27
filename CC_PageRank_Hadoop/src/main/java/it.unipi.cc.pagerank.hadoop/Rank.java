@@ -53,6 +53,7 @@ public class Rank {
             final double mass = reducerValue.getPageRank() / outLinks.size();
 
             reducerValue.setAdjacencyList(empty);
+            reducerValue.setIsNode(false);
             for(String outLink: outLinks) {
                 reducerKey.set(outLink);
                 reducerValue.setPageRank(mass);
@@ -80,8 +81,10 @@ public class Rank {
         public void reduce(Text key, Iterable<Node> values, Context context) throws IOException, InterruptedException {
             double rank = 0.0;
             outValue.setAdjacencyList(empty);
+            outValue.setIsNode(false);
+
             for(Node p: values) {
-                if(p.isCompleteNode())
+                if(p.isNode())
                     outValue.set(p);  // (1)
                 else
                     rank += p.getPageRank(); // (2)
