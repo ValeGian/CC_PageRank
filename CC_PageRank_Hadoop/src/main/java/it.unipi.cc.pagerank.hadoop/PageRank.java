@@ -8,17 +8,18 @@ public class PageRank {
     public static void main(final String[] args) throws Exception {
         final Configuration conf = new Configuration();
         String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
-        if (otherArgs.length != 4) {
-            System.err.println("Usage: PageRank <input> <base output> <# of iterations> <random jump probability>");
+        if (otherArgs.length != 5) {
+            System.err.println("Usage: PageRank <input> <base output> <# of iterations> <# of reducers> <random jump probability>");
             System.exit(1);
         }
         final String INPUT = otherArgs[0];
         final String BASE_OUTPUT = otherArgs[1];
         final int ITERATIONS = Integer.parseInt(otherArgs[2]);
-        final double ALPHA = Double.parseDouble(otherArgs[3]);
+        final int REDUCERS = Integer.parseInt(otherArgs[3]);
+        final double ALPHA = Double.parseDouble(otherArgs[4]);
 
         // Count Stage
-        final int pageCount = Count.getInstance().getPageCount(INPUT, BASE_OUTPUT);
+        final int pageCount = Count.getInstance().getPageCount(INPUT, BASE_OUTPUT, REDUCERS);
         if(pageCount < 1) {
             throw new Exception("Count job failed");
         }
