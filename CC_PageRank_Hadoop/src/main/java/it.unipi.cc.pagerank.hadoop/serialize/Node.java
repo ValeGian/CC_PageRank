@@ -1,16 +1,15 @@
 package it.unipi.cc.pagerank.hadoop.serialize;
 
 import com.google.gson.Gson;
-import org.apache.hadoop.io.WritableComparable;
+import org.apache.hadoop.io.Writable;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-public class Node implements WritableComparable<Node> {
+public class Node implements Writable {
     private double pageRank;
     private List<String> adjacencyList;
     private boolean isNode;
@@ -103,37 +102,7 @@ public class Node implements WritableComparable<Node> {
         String json = new Gson().toJson(this);
         return json;
     }
-
-    public void fromString(String s) {
-
-
-        String[] parts = s.split("\\t");
-
-
-        //q6	pageRank:0.2	adj:[q3,q4,q6]
-        if (parts.length > 2) {
-            this.pageRank = Double.parseDouble(parts[1].split(":")[1]);
-
-            String s1 = parts[2].split(":")[1];
-
-            s1 = s1.replace("[", "");
-            s1 = s1.replace("]", "");
-
-            this.adjacencyList = new ArrayList<String>(Arrays.asList(s1.split(",")));
-        }
-        else{
-            this.pageRank = Double.parseDouble(parts[0].split(":")[1]);
-
-            String s1 = parts[1].split(":")[1];
-
-            s1 = s1.replace("[", "");
-            s1 = s1.replace("]", "");
-
-            this.adjacencyList = new ArrayList<String>(Arrays.asList(s1.split(",")));
-        }
-
-    }
-
+/*
     @Override
     public boolean equals(Object o) {
         if (o == this) {
@@ -162,4 +131,5 @@ public class Node implements WritableComparable<Node> {
         double thatRank = that.getPageRank();
         return this.pageRank < thatRank ? -1 : (this.pageRank == thatRank ? 0 : 1);
     }
+ */
 }

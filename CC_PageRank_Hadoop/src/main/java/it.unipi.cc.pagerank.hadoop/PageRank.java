@@ -8,7 +8,7 @@ public class PageRank {
     public static void main(final String[] args) throws Exception {
         final Configuration conf = new Configuration();
         String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
-        if (otherArgs.length != 5) {
+        if(otherArgs.length != 5) {
             System.err.println("Usage: PageRank <input> <base output> <# of iterations> <# of reducers> <random jump probability>");
             System.exit(1);
         }
