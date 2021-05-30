@@ -19,7 +19,7 @@ public class PageRank {
         final double ALPHA = Double.parseDouble(otherArgs[4]);
 
         // Count Stage
-        final int pageCount = Count.getInstance().getPageCount(INPUT, BASE_OUTPUT, REDUCERS);
+        final int pageCount = Count.getInstance().getPageCount(INPUT, BASE_OUTPUT, 1);
         if(pageCount < 1) {
             throw new Exception("Count job failed");
         }
