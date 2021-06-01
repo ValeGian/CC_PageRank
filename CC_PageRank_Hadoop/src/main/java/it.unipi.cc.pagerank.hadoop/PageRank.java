@@ -1,7 +1,6 @@
 package it.unipi.cc.pagerank.hadoop;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.util.GenericOptionsParser;
 
 public class PageRank {

@@ -58,9 +58,10 @@ public class Parse {
                     for (String outLink : outLinks) {
                         reducerValue.set(outLink);
                         context.write(reducerKey, reducerValue);
+                        context.write(reducerValue, empty); // emit outlink (useful to keep track of pages not present as XML)
                     }
                 } else
-                    context.write(reducerKey, empty);
+                    context.write(reducerKey, empty); // if it is a dangling node
             }
         }
     }

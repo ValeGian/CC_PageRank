@@ -94,7 +94,7 @@ public class Node implements Writable {
     //-------------------------------------------------------------------------------
 
     public String toHumanString() {
-        return "[Rank: " + pageRank + "]\t[AdjList: " + adjacencyList + "]";
+        return "[Rank: " + pageRank + "]\t[AdjList: " + adjacencyList + "]\t[IsNode: " + isNode;
     }
 
     @Override
