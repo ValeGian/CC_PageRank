@@ -105,47 +105,30 @@ public class Count {
         return job.waitForCompletion(true);
     }
 
-    public int getPageCount(final String input, final String baseOutput, final int numPartitions) throws Exception {
+    public int getPageCount(final String input, final String baseOutput) throws Exception {
         // run the Count stage
         if(!Count.getInstance().run(input, baseOutput))
             return -1;
 
-        int pageCount = 0;
-        String file;
         // read and return the result
-        for(int i = 0; i < numPartitions; i++) {
-            file = baseOutput + OUTPUT_PATH + "/part-r-" + getFileNumber(i);
-            Configuration configuration = new Configuration();
-            FileSystem fileSystem = FileSystem.get(configuration);
-            Path hdfsReadPath = new Path(file);
-            FSDataInputStream inputStream = fileSystem.open(hdfsReadPath);
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-            String line = bufferedReader.readLine();
+        final String file = baseOutput + OUTPUT_PATH + "/part-r-00000";
+        Configuration configuration = new Configuration();
+        FileSystem fileSystem = FileSystem.get(configuration);
+        Path hdfsReadPath = new Path(file);
+        FSDataInputStream inputStream = fileSystem.open(hdfsReadPath);
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+        String line = bufferedReader.readLine();
 
-            bufferedReader.close();
-            inputStream.close();
-            fileSystem.close();
+        bufferedReader.close();
+        inputStream.close();
+        fileSystem.close();
 
-            String[] tokens = line.trim().split(OUTPUT_SEPARATOR);
-            assertEquals(OUTPUT_KEY, tokens[0]);
+        String[] tokens = line.trim().split(OUTPUT_SEPARATOR);
+        assertEquals(OUTPUT_KEY, tokens[0]);
 
-            pageCount += Integer.parseInt(tokens[1]);
-        }
+        int pageCount = Integer.parseInt(tokens[1]);
 
         return pageCount;
-    }
-
-    private String getFileNumber(final int num) {
-        if(num < 10)
-            return "0000" + num;
-        else if(num < 100)
-            return "000" + num;
-        else if(num < 1000)
-            return "00" + num;
-        else if(num < 10000)
-            return "0" + num;
-        else
-            return String.valueOf(num);
     }
 
     /*

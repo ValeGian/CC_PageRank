@@ -91,7 +91,10 @@ public class Parse {
         }
     }
 
-    public boolean run(final String input, final String baseOutput, final int pageCount) throws Exception {
+    public boolean run(final String input,
+                       final String baseOutput,
+                       final int numReducers,
+                       final int pageCount) throws Exception {
         this.output = baseOutput + OUTPUT_PATH;
 
         // set configurations
@@ -116,6 +119,9 @@ public class Parse {
 
         // set page.count for initializing the ranks
         job.getConfiguration().setInt("page.count", pageCount);
+
+        // set number of reducer tasks to be used
+        job.setNumReduceTasks(numReducers);
 
         // define I/O
         FileInputFormat.addInputPath(job, new Path(input));

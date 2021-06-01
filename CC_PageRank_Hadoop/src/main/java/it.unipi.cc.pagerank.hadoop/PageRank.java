@@ -1,6 +1,7 @@
 package it.unipi.cc.pagerank.hadoop;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.util.GenericOptionsParser;
 
 public class PageRank {
@@ -19,14 +20,14 @@ public class PageRank {
         final double ALPHA = Double.parseDouble(otherArgs[4]);
 
         // Count Stage
-        final int pageCount = Count.getInstance().getPageCount(INPUT, BASE_OUTPUT, 1);
+        final int pageCount = Count.getInstance().getPageCount(INPUT, BASE_OUTPUT);
         if(pageCount < 1) {
             throw new Exception("Count job failed");
         }
         System.out.println(">> Count Stage completed");
 
         // Parse Stage
-        if(!Parse.getInstance().run(INPUT, BASE_OUTPUT, pageCount)) {
+        if(!Parse.getInstance().run(INPUT, BASE_OUTPUT, REDUCERS, pageCount)) {
             throw new Exception("Parse job failed");
         }
         System.out.println(">> Parse Stage completed");
@@ -34,7 +35,7 @@ public class PageRank {
         // Rank Stage until convergence
         String nextInput = Parse.getInstance().getOutputPath();
         for(int i = 0; i < ITERATIONS; i++) {
-            if(!Rank.getInstance().run(nextInput, BASE_OUTPUT, ALPHA, pageCount, i))
+            if(!Rank.getInstance().run(nextInput, BASE_OUTPUT, ALPHA, REDUCERS, pageCount, i))
                 throw new Exception("Rank " + i + "-th job failed");
             nextInput = Rank.getInstance().getOutputPath();
             System.out.println(">> Iteration " + (i+1) + " completed");

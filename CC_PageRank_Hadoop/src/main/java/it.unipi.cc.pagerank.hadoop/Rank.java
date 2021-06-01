@@ -94,7 +94,12 @@ public class Rank {
 
     }
 
-    public boolean run(final String input, final String baseOutput, final double alpha, final int pageCount, final int iteration) throws Exception {
+    public boolean run(final String input,
+                       final String baseOutput,
+                       final double alpha,
+                       final int numReducers,
+                       final int pageCount,
+                       final int iteration) throws Exception {
         this.output = baseOutput + OUTPUT_PATH + "-" + iteration;
 
         // set configurations
@@ -120,6 +125,9 @@ public class Rank {
         // set the random jump probability alpha and the page count
         job.getConfiguration().setDouble("alpha", alpha);
         job.getConfiguration().setInt("page.count", pageCount);
+
+        // set number of reducer tasks to be used
+        job.setNumReduceTasks(numReducers);
 
         // define I/O
         KeyValueTextInputFormat.addInputPath(job, new Path(input));
