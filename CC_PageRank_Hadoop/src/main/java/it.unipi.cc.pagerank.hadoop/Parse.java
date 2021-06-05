@@ -58,10 +58,10 @@ public class Parse {
                     for (String outLink : outLinks) {
                         reducerValue.set(outLink);
                         context.write(reducerKey, reducerValue);
-                        context.write(reducerValue, empty); // emit outlink (useful to keep track of pages not present as XML)
+                        context.write(reducerValue, empty); // emit out-link (useful to keep track of pages not present as XML)
                     }
                 } else
-                    context.write(reducerKey, empty); // if it is a dangling node
+                    context.write(reducerKey, empty); // dangling node
             }
         }
     }
@@ -69,6 +69,10 @@ public class Parse {
     public static class ParseReducer extends Reducer<Text, Text, Text, Node> {
         private int pageCount;
         private static final Node outValue = new Node();
+        private static int count = 0;   //
+                                        //
+                                        //Metti Combiner per ridurre questo count da 46191 a 82
+                                        //
 
         @Override
         public void setup(Context context) throws IOException, InterruptedException {
@@ -84,11 +88,19 @@ public class Parse {
                 value = outLink.toString();
                 if(!value.equals(""))
                     adjacencyList.add(value);
+                else {
+                    count += 1;
+                }
             }
             outValue.setAdjacencyList(adjacencyList);
             outValue.setPageRank(1.0d/this.pageCount);
             outValue.setIsNode(true);
             context.write(key, outValue);
+        }
+
+        @Override
+        public void cleanup(Context context) throws IOException, InterruptedException {
+            System.out.println(count);
         }
     }
 
