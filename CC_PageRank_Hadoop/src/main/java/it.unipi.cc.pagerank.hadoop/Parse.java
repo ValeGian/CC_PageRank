@@ -37,19 +37,24 @@ public class Parse {
 
     public String getOutputPath() { return output; }
 
+
     public static class ParseMapper extends Mapper<LongWritable, Text, Text, Text> {
         private static final Text reducerKey = new Text();
         private static final Text reducerValue = new Text();
         private static final Text empty = new Text("");
         private static final Parser wiki_microParser = new ParserWikiMicro();
 
+        private static String record;
+        private static String title;
+        private static List<String> outLinks;
+
         // For each line of the input (web page/node), emit title and out-links (if any)
         @Override
         public void map(final LongWritable key, final Text value, final Context context) throws IOException, InterruptedException {
-            String record = value.toString();
+            record = value.toString();
             wiki_microParser.setStringToParse(record);
-            String title = wiki_microParser.getTitle();
-            List<String> outLinks = wiki_microParser.getOutLinks();
+            title = wiki_microParser.getTitle();
+            outLinks = wiki_microParser.getOutLinks();
 
             if(title != null) {
                 reducerKey.set(title);
@@ -66,13 +71,36 @@ public class Parse {
         }
     }
 
+
+    public static class ParseCombiner extends Reducer<Text, Text, Text, Text> {
+        private static String value;
+        private static boolean emptyFound;
+
+        // For each key, emitt all it's not-empty values + 0 or 1 empty values
+        @Override
+        public void reduce(final Text key, final Iterable<Text> values, final Context context) throws IOException, InterruptedException {
+            emptyFound = false;
+            for(Text outValue: values) {
+                value = outValue.toString();
+                if(!value.equals(""))
+                    context.write(key, outValue);
+                else {
+                    if(!emptyFound) {
+                        context.write(key, outValue);
+                        emptyFound = true;
+                    }
+                }
+            }
+        }
+    }
+
+
     public static class ParseReducer extends Reducer<Text, Text, Text, Node> {
         private int pageCount;
         private static final Node outValue = new Node();
-        private static int count = 0;   //
-                                        //
-                                        //Metti Combiner per ridurre questo count da 46191 a 82
-                                        //
+
+        private static List<String> adjacencyList;
+        private static String value;
 
         @Override
         public void setup(Context context) throws IOException, InterruptedException {
@@ -82,27 +110,19 @@ public class Parse {
         // For each page, emit the title and its node features
         @Override
         public void reduce(final Text key, final Iterable<Text> values, final Context context) throws IOException, InterruptedException {
-            List<String> adjacencyList = new ArrayList<>();
-            String value;
-            for (Text outLink: values) {
+            adjacencyList = new ArrayList<>();
+            for(Text outLink: values) {
                 value = outLink.toString();
                 if(!value.equals(""))
                     adjacencyList.add(value);
-                else {
-                    count += 1;
-                }
             }
             outValue.setAdjacencyList(adjacencyList);
             outValue.setPageRank(1.0d/this.pageCount);
             outValue.setIsNode(true);
             context.write(key, outValue);
         }
-
-        @Override
-        public void cleanup(Context context) throws IOException, InterruptedException {
-            System.out.println(count);
-        }
     }
+
 
     public boolean run(final String input,
                        final String baseOutput,
@@ -118,8 +138,9 @@ public class Parse {
         final Job job = new Job(conf, "Parse");
         job.setJarByClass(Parse.class);
 
-        // set mapper/reducer
+        // set mapper/combiner/reducer
         job.setMapperClass(ParseMapper.class);
+        job.setCombinerClass(ParseCombiner.class);
         job.setReducerClass(ParseReducer.class);
 
         // define mapper's output key-value

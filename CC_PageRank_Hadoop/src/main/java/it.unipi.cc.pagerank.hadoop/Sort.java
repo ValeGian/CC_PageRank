@@ -11,7 +11,6 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
-import org.apache.hadoop.util.GenericOptionsParser;
 
 import java.io.IOException;
 
@@ -33,6 +32,7 @@ public class Sort {
 
     public String getOutputPath() { return output; }
 
+
     public static class SortMapper extends Mapper<Text, Text, Page, NullWritable> {
         private static final Node node = new Node();
         private static final Page reducerKey = new Page();
@@ -47,6 +47,7 @@ public class Sort {
         }
     }
 
+
     public static class SortReducer extends Reducer<Page, NullWritable, Text, DoubleWritable> {
         private static final Text title = new Text();
         private static final DoubleWritable rank = new DoubleWritable();
@@ -59,6 +60,7 @@ public class Sort {
             context.write(title, rank);
         }
     }
+
 
     public boolean run(final String input, final String baseOutput) throws Exception {
         this.output = baseOutput + OUTPUT_PATH;

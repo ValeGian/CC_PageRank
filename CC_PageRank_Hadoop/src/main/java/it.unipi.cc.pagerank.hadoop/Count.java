@@ -1,8 +1,5 @@
 package it.unipi.cc.pagerank.hadoop;
 
-import it.unipi.cc.pagerank.hadoop.parser.Parser;
-import it.unipi.cc.pagerank.hadoop.parser.ParserWikiMicro;
-import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -22,8 +19,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Watchable;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -44,23 +39,39 @@ public class Count {
         return instance;
     }
 
-    public static class CountMapper extends Mapper<LongWritable, Text, Text, IntWritable> {
-        private static final IntWritable one = new IntWritable(1);
-        private static final Text keyEmit = new Text(OUTPUT_KEY); // useful for debugging
 
-        // For each line in the input (web page/node), emit 1
+    public static class CountMapper extends Mapper<LongWritable, Text, Text, IntWritable> {
+        private static final Text keyEmit = new Text(OUTPUT_KEY); // useful for debugging
+        private static final IntWritable valueEmit = new IntWritable();
+
+        private static int count; // used for In-Mapping Combining
+
+        @Override
+        public void setup(Context context) throws IOException, InterruptedException {
+            count = 0;
+        }
+
         @Override
         public void map(final LongWritable key, final Text value, final Context context) throws IOException, InterruptedException {
-            context.write(keyEmit, one);
+            count++;
+        }
+
+        @Override
+        public void cleanup(Context context) throws IOException, InterruptedException {
+            valueEmit.set(count);
+            context.write(keyEmit, valueEmit);
         }
     }
+
 
     public static class CountReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
         private static final IntWritable result = new IntWritable();
 
+        private static int sum;
+
         @Override
         public void reduce(final Text key, final Iterable<IntWritable> values, final Context context) throws IOException, InterruptedException {
-            int sum = 0;
+            sum = 0;
             for (final IntWritable val : values) {
                 sum += val.get();
             }
@@ -68,6 +79,7 @@ public class Count {
             context.write(key, result);
         }
     }
+
 
     public boolean run(final String input, final String baseOutput) throws Exception {
         final String output = baseOutput + OUTPUT_PATH;
@@ -81,9 +93,8 @@ public class Count {
         job.setJarByClass(Count.class);
         //job.setNumReduceTasks(5);
 
-        // set mapper/combiner/reducer
+        // set mapper/reducer
         job.setMapperClass(CountMapper.class);
-        job.setCombinerClass(CountReducer.class);
         job.setReducerClass(CountReducer.class);
 
         // define mapper's output key-value
@@ -104,6 +115,7 @@ public class Count {
 
         return job.waitForCompletion(true);
     }
+
 
     public int getPageCount(final String input, final String baseOutput) throws Exception {
         // run the Count stage

@@ -33,10 +33,14 @@ public class Rank {
 
     public String getOutputPath() { return output; }
 
+
     public static class RankMapper extends Mapper<Text, Text, Text, Node> {
         private static final Text reducerKey = new Text();
         private static final Node reducerValue = new Node();
         private static final List<String> empty = new ArrayList<>();
+        
+        private static List<String> outLinks;
+        private static double mass;
 
         // For each line of the input (page title and its node features)
         // (1) emit page title and its node features to maintain the graph structure
@@ -47,8 +51,8 @@ public class Rank {
             reducerValue.setFromJson(value.toString());
             context.write(reducerKey, reducerValue); // (1)
 
-            List<String> outLinks = reducerValue.getAdjacencyList();
-            final double mass = reducerValue.getPageRank() / outLinks.size();
+            outLinks = reducerValue.getAdjacencyList();
+            mass = reducerValue.getPageRank() / outLinks.size();
 
             reducerValue.setAdjacencyList(empty);
             reducerValue.setIsNode(false);
@@ -60,11 +64,42 @@ public class Rank {
         }
     }
 
+
+    public static class RankCombiner extends Reducer<Text, Node, Text, Node> {
+        private static final Node outValue = new Node();
+        private static final List<String> empty = new ArrayList<>();
+        
+        private static double aggregatedRank;
+
+        // For each key 
+        // (1) pass along the graph-structure
+        // (2) sum up the entrant rank values and emit the aggregate
+        @Override
+        public void reduce(Text key, Iterable<Node> values, Context context) throws IOException, InterruptedException {
+            aggregatedRank = 0.0;
+            outValue.setAdjacencyList(empty);
+            outValue.setIsNode(false);
+
+            for(Node p: values) {
+                if(p.isNode())
+                    context.write(key, p); // (1)
+                else
+                    aggregatedRank += p.getPageRank();
+            }
+            outValue.setPageRank(aggregatedRank);
+            context.write(key, outValue); // (2)
+        }
+    }
+
+
     public static class RankReducer extends Reducer<Text, Node, Text, Node>{
         private double alpha;
         private int pageCount;
         private static final Node outValue = new Node();
         private static final List<String> empty = new ArrayList<>();
+        
+        private static double rank;
+        private static double newPageRank;
 
         @Override
         public void setup(Context context) throws IOException, InterruptedException {
@@ -77,7 +112,7 @@ public class Rank {
         // (2) else, get from it an incoming rank contribution
         @Override
         public void reduce(Text key, Iterable<Node> values, Context context) throws IOException, InterruptedException {
-            double rank = 0.0;
+            rank = 0.0;
             outValue.setAdjacencyList(empty);
             outValue.setIsNode(false);
 
@@ -87,12 +122,12 @@ public class Rank {
                 else
                     rank += p.getPageRank(); // (2)
             }
-            double newPageRank = (this.alpha / ((double)this.pageCount)) + ((1 - this.alpha) * rank);
+            newPageRank = (this.alpha / ((double)this.pageCount)) + ((1 - this.alpha) * rank);
             outValue.setPageRank(newPageRank);
             context.write(key, outValue);
         }
-
     }
+
 
     public boolean run(final String input,
                        final String baseOutput,
@@ -110,8 +145,9 @@ public class Rank {
         final Job job = new Job(conf, "Rank-" + iteration);
         job.setJarByClass(Rank.class);
 
-        // set mapper/reducer
+        // set mapper/combiner/reducer
         job.setMapperClass(RankMapper.class);
+        job.setCombinerClass(RankCombiner.class);
         job.setReducerClass(RankReducer.class);
 
         // define mapper's output key-value
