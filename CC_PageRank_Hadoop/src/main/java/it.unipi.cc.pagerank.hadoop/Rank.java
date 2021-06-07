@@ -12,7 +12,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class Rank {
@@ -37,7 +37,7 @@ public class Rank {
     public static class RankMapper extends Mapper<Text, Text, Text, Node> {
         private static final Text reducerKey = new Text();
         private static final Node reducerValue = new Node();
-        private static final List<String> empty = new ArrayList<>();
+        private static final List<String> empty = new LinkedList<>();
         
         private static List<String> outLinks;
         private static double mass;
@@ -67,7 +67,7 @@ public class Rank {
 
     public static class RankCombiner extends Reducer<Text, Node, Text, Node> {
         private static final Node outValue = new Node();
-        private static final List<String> empty = new ArrayList<>();
+        private static final List<String> empty = new LinkedList<>();
         
         private static double aggregatedRank;
 
@@ -96,7 +96,7 @@ public class Rank {
         private double alpha;
         private int pageCount;
         private static final Node outValue = new Node();
-        private static final List<String> empty = new ArrayList<>();
+        private static final List<String> empty = new LinkedList<>();
         
         private static double rank;
         private static double newPageRank;

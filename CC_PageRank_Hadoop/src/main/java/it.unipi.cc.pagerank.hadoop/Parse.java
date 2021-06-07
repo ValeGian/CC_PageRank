@@ -16,7 +16,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class Parse {
@@ -110,7 +110,7 @@ public class Parse {
         // For each page, emit the title and its node features
         @Override
         public void reduce(final Text key, final Iterable<Text> values, final Context context) throws IOException, InterruptedException {
-            adjacencyList = new ArrayList<>();
+            adjacencyList = new LinkedList<>();
             for(Text outLink: values) {
                 value = outLink.toString();
                 if(!value.equals(""))

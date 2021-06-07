@@ -6,7 +6,7 @@ import org.apache.hadoop.io.Writable;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class Node implements Writable {
@@ -17,7 +17,7 @@ public class Node implements Writable {
     //-------------------------------------------------------------------------------
 
     public Node() {
-        setAdjacencyList(new ArrayList<String>());
+        setAdjacencyList(new LinkedList<String>());
         setIsNode(false);
     }
 
@@ -83,7 +83,7 @@ public class Node implements Writable {
         this.pageRank = in.readDouble();
 
         int size = in.readInt();
-        this.adjacencyList = new ArrayList<String>();
+        this.adjacencyList = new LinkedList<>();
         for (int i = 0; i < size; i++) {
             this.adjacencyList.add(in.readUTF());
         }
