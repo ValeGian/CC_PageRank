@@ -1,6 +1,6 @@
 package it.unipi.cc.pagerank.hadoop.parser;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -31,7 +31,7 @@ public class ParserWikiMicro implements Parser {
 
     @Override
     public List<String> getOutLinks() {
-        List<String> outLinks = new ArrayList<>();
+        List<String> outLinks = new LinkedList<>();
 
         this.matcher = parse("\\[\\[(.*?)\\]\\]");
         while(matcher.find()) {

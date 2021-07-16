@@ -9,5 +9,8 @@
         <module name="CC_PageRank_Hadoop" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="CC_PageRank_Hadoop" target="7" />
+    </bytecodeTargetLevel>
   </component>
 </project>
